@@ -1,28 +1,14 @@
-import numpy as np
 import cv2
+import numpy as np
 from functools import partial
 from datetime import datetime
+from ImageDescriber import ImageDescriber
+from MatcherDescribedImage import MatcherDescribedImage
 
 help_message = '''SURF image match 
 
 USAGE: findobj.py [ <image1> <image2> ]
 '''
-
-def anorm2(a):
-    return (a*a).sum(-1)
-
-def anorm(a):
-    return np.sqrt( anorm2(a) )
-
-def match_bruteforce(desc1, desc2, r_threshold = 0.75):
-    res = []
-    for i in xrange(len(desc1)):
-        dist = anorm( desc2 - desc1[i] )
-        n1, n2 = dist.argsort()[:2]
-        r = dist[n1] / dist[n2]
-        if r < r_threshold:
-            res.append((i, n1))
-    return np.array(res)
 
 def draw_match(img1, img2, p1, p2, status = None, H = None):
     h1, w1 = img1.shape[:2]
@@ -57,56 +43,38 @@ def draw_match(img1, img2, p1, p2, status = None, H = None):
             cv2.line(vis, (x2+w1-r, y2+r), (x2+w1+r, y2-r), col, thickness)
     return vis
 
-def createSurf(threshold):
-    return cv2.SURF(threshsold)
+def ProcessImages(img1, img2):  
+    surf = cv2.SURF(1000)
 
-def match_and_draw(r_threshold):
-    m = match_bruteforce(desc1, desc2, r_threshold)
-    matched_p1 = np.array([kp1[i].pt for i, j in m])
-    matched_p2 = np.array([kp2[j].pt for i, j in m])
-    if (4 < len(matched_p1)) and (4 < len(matched_p2)):
-        H, status = cv2.findHomography(matched_p1, matched_p2, cv2.RANSAC, 5)
-#        print '%d / %d  inliers/matched' % (np.sum(status), len(status))
-    else:
-        H = None
-        status = None
-#        print "status is None"
-    vis = draw_match(img1, img2, matched_p1, matched_p2, status, H)
-    return vis
+    startTime = datetime.now()
+    print "starting: ", startTime
+    imgDcr1 = ImageDescriber(img1, surf)
+    imgDcr2 = ImageDescriber(img2, surf)
+    
+    mtcDcrImg = MatcherDescribedImage(imgDcr1, imgDcr2)
+    mtcDcrImg.match()    
+
+#    print 'img1 - %d features, img2 - %d features' % (len(kp1), len(kp2))
+#    print 'bruteforce match:',
+    finishTime = datetime.now()
+    print "finished: ", finishTime
+    duration = finishTime - startTime
+    print "duration: ", duration
+
+    return mtcDcrImg
 
 if __name__ == '__main__':
-    import sys
+    import sys    
     try: fn1, fn2 = sys.argv[1:3]
     except:
-#        fn1 = '../c/box.png'
-#        fn2 = '../c/box_in_scene.png'
         fn1 = "./1.jpg"
         fn2 = "./2.jpg"
     print help_message
-
     img1 = cv2.imread(fn1, 0)
     img2 = cv2.imread(fn2, 0)
 
-    print "starting initialize surf: ", datetime.now()
-    surf = cv2.SURF(1000)
-
-    startLoopTime = datetime.now()
-    print "starting loop: ", startLoopTime
-    for i in range(24):
-        kp1, desc1 = surf.detectAndCompute(img1, None)
-        kp2, desc2 = surf.detectAndCompute(img2, None)
-        desc1.shape = (-1, surf.descriptorSize())
-        desc2.shape = (-1, surf.descriptorSize())
-        #    print "desc1.shape"
-        #    print desc1.shape
-#        print 'img1 - %d features, img2 - %d features' % (len(kp1), len(kp2))
-#        print 'bruteforce match:',
-        vis_brute = match_and_draw(0.75)
-    endLoopTime = datetime.now()
-    print "loop is ended: ", endLoopTime
-    duration = endLoopTime - startLoopTime
-    print "duration ", duration
-                                                   # neighbours, so r_threshold is decreased
+    mtcDcrImg = ProcessImages(img1, img2)
+    vis_brute = draw_match(img1, img2, mtcDcrImg.matched_p1, mtcDcrImg.matched_p2, mtcDcrImg.status, mtcDcrImg.H)
     cv2.imshow('find_obj SURF', vis_brute)
     cv2.waitKey()
     cv2.destroyAllWindows()
