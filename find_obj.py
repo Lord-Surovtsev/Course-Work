@@ -1,17 +1,18 @@
 import numpy as np
 import cv2
-from common import anorm
 from functools import partial
+from datetime import datetime
 
 help_message = '''SURF image match 
 
 USAGE: findobj.py [ <image1> <image2> ]
 '''
 
-FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
+def anorm2(a):
+    return (a*a).sum(-1)
 
-flann_params = dict(algorithm = FLANN_INDEX_KDTREE,
-                    trees = 4)
+def anorm(a):
+    return np.sqrt( anorm2(a) )
 
 def match_bruteforce(desc1, desc2, r_threshold = 0.75):
     res = []
@@ -23,14 +24,6 @@ def match_bruteforce(desc1, desc2, r_threshold = 0.75):
             res.append((i, n1))
     return np.array(res)
 
-def match_flann(desc1, desc2, r_threshold = 0.6):
-    flann = cv2.flann_Index(desc2, flann_params)
-    idx2, dist = flann.knnSearch(desc1, 2, params = {}) # bug: need to provide empty dict
-    mask = dist[:,0] / dist[:,1] < r_threshold
-    idx1 = np.arange(len(desc1))
-    pairs = np.int32( zip(idx1, idx2[:,0]) )
-    return pairs[mask]
-
 def draw_match(img1, img2, p1, p2, status = None, H = None):
     h1, w1 = img1.shape[:2]
     h2, w2 = img2.shape[:2]
@@ -38,12 +31,12 @@ def draw_match(img1, img2, p1, p2, status = None, H = None):
     vis[:h1, :w1] = img1
     vis[:h2, w1:w1+w2] = img2
     vis = cv2.cvtColor(vis, cv2.COLOR_GRAY2BGR)
-
-#    if H is not None:
-#        corners = np.float32([[0, 0], [w1, 0], [w1, h1], [0, h1]])
-#        corners = np.int32( cv2.perspectiveTransform(corners.reshape(1, -1, 2), H).reshape(-1, 2) + (w1, 0) )
-#        cv2.polylines(vis, [corners], True, (255, 255, 255))
-    
+    '''
+    if H is not None:
+        corners = np.float32([[0, 0], [w1, 0], [w1, h1], [0, h1]])
+        corners = np.int32( cv2.perspectiveTransform(corners.reshape(1, -1, 2), H).reshape(-1, 2) + (w1, 0) )
+        cv2.polylines(vis, [corners], True, (255, 255, 255))
+    '''
     if status is None:
         status = np.ones(len(p1), np.bool_)
     green = (0, 255, 0)
@@ -64,6 +57,22 @@ def draw_match(img1, img2, p1, p2, status = None, H = None):
             cv2.line(vis, (x2+w1-r, y2+r), (x2+w1+r, y2-r), col, thickness)
     return vis
 
+def createSurf(threshold):
+    return cv2.SURF(threshsold)
+
+def match_and_draw(r_threshold):
+    m = match_bruteforce(desc1, desc2, r_threshold)
+    matched_p1 = np.array([kp1[i].pt for i, j in m])
+    matched_p2 = np.array([kp2[j].pt for i, j in m])
+    if (4 < len(matched_p1)) and (4 < len(matched_p2)):
+        H, status = cv2.findHomography(matched_p1, matched_p2, cv2.RANSAC, 5)
+#        print '%d / %d  inliers/matched' % (np.sum(status), len(status))
+    else:
+        H = None
+        status = None
+#        print "status is None"
+    vis = draw_match(img1, img2, matched_p1, matched_p2, status, H)
+    return vis
 
 if __name__ == '__main__':
     import sys
@@ -78,38 +87,26 @@ if __name__ == '__main__':
     img1 = cv2.imread(fn1, 0)
     img2 = cv2.imread(fn2, 0)
 
+    print "starting initialize surf: ", datetime.now()
     surf = cv2.SURF(1000)
-    kp1, desc1 = surf.detectAndCompute(img1, None)
-    kp2, desc2 = surf.detectAndCompute(img2, None)
-    desc1.shape = (-1, surf.descriptorSize())
-    desc2.shape = (-1, surf.descriptorSize())
-    print 'img1 - %d features, img2 - %d features' % (len(kp1), len(kp2))
 
-    def match_and_draw(match, r_threshold):
-        m = match(desc1, desc2, r_threshold)
-        matched_p1 = np.array([kp1[i].pt for i, j in m])
-        matched_p2 = np.array([kp2[j].pt for i, j in m])
-#        H, status = cv2.findHomography(matched_p1, matched_p2, cv2.RANSAC, 5)
- 	print "-------"
-	print "matched_p1.len() = ", len(matched_p1)
-	print "matched_p2.len() = ", len(matched_p2)
-	print "/------"
-	if (4 < len(matched_p1)) and (4 < len(matched_p2)):
-		H, status = cv2.findHomography(matched_p1, matched_p2, cv2.RANSAC, 5)	
-      		print '%d / %d  inliers/matched' % (np.sum(status), len(status))
-	else:
-		H = None
-		status = None
-		print "status is None"
-        vis = draw_match(img1, img2, matched_p1, matched_p2, status, H)
-        return vis
-
-    print 'bruteforce match:',
-    vis_brute = match_and_draw( match_bruteforce, 0.75)
-#    print 'flann match:',
-#    vis_flann = match_and_draw( match_flann, 0.6 ) # flann tends to find more distant second
+    startLoopTime = datetime.now()
+    print "starting loop: ", startLoopTime
+    for i in range(24):
+        kp1, desc1 = surf.detectAndCompute(img1, None)
+        kp2, desc2 = surf.detectAndCompute(img2, None)
+        desc1.shape = (-1, surf.descriptorSize())
+        desc2.shape = (-1, surf.descriptorSize())
+        #    print "desc1.shape"
+        #    print desc1.shape
+#        print 'img1 - %d features, img2 - %d features' % (len(kp1), len(kp2))
+#        print 'bruteforce match:',
+        vis_brute = match_and_draw(0.75)
+    endLoopTime = datetime.now()
+    print "loop is ended: ", endLoopTime
+    duration = endLoopTime - startLoopTime
+    print "duration ", duration
                                                    # neighbours, so r_threshold is decreased
     cv2.imshow('find_obj SURF', vis_brute)
-#    cv2.imshow('find_obj SURF flann', vis_flann)
     cv2.waitKey()
-    cv2.destroyAllWindows() 			
+    cv2.destroyAllWindows()
