@@ -17,12 +17,6 @@ def draw_match(img1, img2, p1, p2, status = None, H = None):
     vis[:h1, :w1] = img1
     vis[:h2, w1:w1+w2] = img2
     vis = cv2.cvtColor(vis, cv2.COLOR_GRAY2BGR)
-    '''
-    if H is not None:
-        corners = np.float32([[0, 0], [w1, 0], [w1, h1], [0, h1]])
-        corners = np.int32( cv2.perspectiveTransform(corners.reshape(1, -1, 2), H).reshape(-1, 2) + (w1, 0) )
-        cv2.polylines(vis, [corners], True, (255, 255, 255))
-    '''
     if status is None:
         status = np.ones(len(p1), np.bool_)
     green = (0, 255, 0)
@@ -43,28 +37,27 @@ def draw_match(img1, img2, p1, p2, status = None, H = None):
             cv2.line(vis, (x2+w1-r, y2+r), (x2+w1+r, y2-r), col, thickness)
     return vis
 
-def ProcessImages(img1, img2):  
+def ProcessImages(img1, img2):
     surf = cv2.SURF(1000)
 
-    startTime = datetime.now()
-    print "starting: ", startTime
+#    starttime = datetime.now()
+#    print "startTime:", startTime
+
     imgDcr1 = ImageDescriber(img1, surf)
     imgDcr2 = ImageDescriber(img2, surf)
-    
-    mtcDcrImg = MatcherDescribedImage(imgDcr1, imgDcr2)
-    mtcDcrImg.match()    
 
-#    print 'img1 - %d features, img2 - %d features' % (len(kp1), len(kp2))
-#    print 'bruteforce match:',
+    mtcDcrImg = MatcherDescribedImage(imgDcr1, imgDcr2)
+    mtcDcrImg.match()
+
     finishTime = datetime.now()
-    print "finished: ", finishTime
-    duration = finishTime - startTime
-    print "duration: ", duration
+#    print "finished: ", finishTime
+#    duration = finishTime - startTime
+#    print "duration: ", duration
 
     return mtcDcrImg
 
 if __name__ == '__main__':
-    import sys    
+    import sys
     try: fn1, fn2 = sys.argv[1:3]
     except:
         fn1 = "./1.jpg"
@@ -74,7 +67,19 @@ if __name__ == '__main__':
     img2 = cv2.imread(fn2, 0)
 
     mtcDcrImg = ProcessImages(img1, img2)
-    vis_brute = draw_match(img1, img2, mtcDcrImg.matched_p1, mtcDcrImg.matched_p2, mtcDcrImg.status, mtcDcrImg.H)
+
+    mtcDcrImg.collectMatchedZippedPoints()
+
+#    print "zP1, ", mtcDcrImg.zP1
+
+#    print "len(zP1) ", len(mtcDcrImg.zP1)
+#    print "len(zP2) ", len(mtcDcrImg.zP2)
+
+    mtcDcrImg.collectMatchedDescriptors()
+#    print "bruteForceIndexes ", mtcDcrImg.bruteForceIndexes
+
+    vis_brute = draw_match(img1, img2, mtcDcrImg.matched_p1, mtcDcrImg.matched_p2, mtcDcrImg.status, mtcDcrImg.H)  
+#    vis_brute = draw_match(img1, img2, mtcDcrImg.zP1, mtcDcrImg.zP2)
     cv2.imshow('find_obj SURF', vis_brute)
     cv2.waitKey()
     cv2.destroyAllWindows()
