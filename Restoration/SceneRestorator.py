@@ -1,33 +1,9 @@
 from sys import argv
 from random import randint
-#from FundMatrCalc import A, VecToEM, DecomposeFundMatr, SetZeros, getTFromTX
 from FundMatrCalc import *
 from numpy import linalg, concatenate
+from Delaunay import *
 
-'''
-def ReadPointsFromFile(fileName):
-    inputFile = open(fileName)
-    P = []
-    PR = []
-    firstLine = True
-    for line in inputFile:
-        if firstLine:
-            firstLine = False
-            continue
-        PS = line.split()
-        P1 = []
-        P2 = []
-        P1.append(float(PS[0]))
-        P1.append(float(PS[1]))
-        P1.append(1)
-        P2.append(float(PS[2]))
-        P2.append(float(PS[3]))
-        P2.append(1)
-        P.append(P1)
-        PR.append(P2)
-    inputFile.close()
-    return P, PR
-'''
 '''
 def WritePointsToFile(P, fileName):
     outputFile = open(fileName, 'w')
@@ -46,7 +22,7 @@ class SceneRestorator:
         self.restoredP = None
         self.restoredPR = None
 
-    def Restore(self):
+    def Calculate(self):
         pntNum = GenerateRandomDistinctIntegers(0, len(self.P) - 1, 8)
 
         p = GetPointsFromArray(pntNum, self.P)
@@ -54,21 +30,21 @@ class SceneRestorator:
 
         self.R, self.t = CalculateRAndT(p, pR, self.accuracy)
 
-
-#    if __name__ == '__main__':
-#        if len(argv) < 2:
-#            print "please specify *.scene"
-#            exit()
-#        P, PR = ReadPointsFromFile(argv[1])
-
-#        R, t = Restore(P, PR, 1e-12)
-#        restoredP = RestorePoints(P, PR, R, t)
-#        WritePointsToFile(restoredP, 'out.txt')
-
-
+    def RestorePoints(self):
+        if self.R is None:
+            self.Calculate()
+        self.restoredP = []
+        for i in range(len(self.P)):
+            p2 = P3DToP2D(self.P[i])
+            pR2 = P3DToP2D(self.PR[i])
+    #        print P[i], " -> ", PR[i]
+            z = CalcZ(p2, pR2, self.R, self.t)
+            self.restoredP.append(self.P[i] * z)
+    #        print "calculated: ", z
+        Tesselation(self.P)
 
 def GenerateRandomDistinctIntegers(left, right, quantity):
-    return range(left,left+quantity)    
+#    return range(left,left+quantity)
     res = []
     count = 0
     while count < quantity:
@@ -84,17 +60,6 @@ def GetPointsFromArray(numbers, P):
     for i in range(len(numbers)):
         res.append(P[numbers[i]])
     return res
-
-    def RestorePoints(P, PR, R, t):
-        res = []
-        for i in range(len(P)):
-            p2 = P3DToP2D(P[i])
-            pR2 = P3DToP2D(PR[i])
-    #        print P[i], " -> ", PR[i]
-            z = CalcZ(p2, pR2, R, t)
-	    res.append(P[i] * z)
-    #        print "calculated: ", z
-        return res
 
 def CalculateRAndT(P, PR, accuracy):
     AMatrix = A(P, PR)
