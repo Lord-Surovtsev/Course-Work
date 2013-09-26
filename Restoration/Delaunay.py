@@ -9,8 +9,10 @@ Converted to Python by: Roman Stanchak
 import cv2.cv as cv
 import random
 
+'''
 def draw_subdiv_point( img, fp, color ):
     cv.Circle( img, (cv.Round(fp[0]), cv.Round(fp[1])), 3, color, cv.CV_FILLED, 8, 0 );
+'''
 
 def draw_subdiv_edge( img, edge, color ):
     org_pt = cv.Subdiv2DEdgeOrg(edge);
@@ -35,7 +37,7 @@ def draw_subdiv( img, subdiv, delaunay_color, voronoi_color ):
         draw_subdiv_edge( img, edge_rot, voronoi_color );
         draw_subdiv_edge( img, edge, delaunay_color );
 
-
+'''
 def locate_point( subdiv, fp, img, active_color ):
 
     (res, e0) = cv.Subdiv2DLocate( subdiv, fp );
@@ -49,7 +51,7 @@ def locate_point( subdiv, fp, img, active_color ):
                 break
 
     draw_subdiv_point( img, fp, active_color );
-
+'''
 
 def draw_subdiv_facet( img, edge ):
 
@@ -109,16 +111,21 @@ def Tesselation(P):
     subdiv = cv.CreateSubdivDelaunay2D( rect, storage );
 
     print "Delaunay triangulation will be build now interactively."
-    print "To stop the process, press any key\n";
+    print "To stop the process, press any key\n"
 
-    for i in range(200):
-        fp = ( random.random()*(rect[2]-10)+5, random.random()*(rect[3]-10)+5 )
-
+    for i in range(len(P)):
+#        fp = ( random.random()*(rect[2]-10)+5, random.random()*(rect[3]-10)+5 )
+#        x = input()
+#        y = input()
+#        fp = (x, y)
+#        print "point ", P[i][0], " ", P[i][1]
+#        print "randomP ", ( random.random()*(rect[2]-10)+5, random.random()*(rect[3]-10)+5 )
+        fp = (P[i][0], P[i][1])
 #        locate_point( subdiv, fp, img, active_facet_color );
         cv.ShowImage( win, img );
 
-        if( cv.WaitKey( 100 ) >= 0 ):
-            break;
+#        if( cv.WaitKey( 100 ) >= 0 ):
+#            break;
 
         cv.SubdivDelaunay2DInsert( subdiv, fp );
 #        cv.CalcSubdivVoronoi2D( subdiv );
@@ -126,8 +133,8 @@ def Tesselation(P):
         draw_subdiv( img, subdiv, delaunay_color, voronoi_color );
         cv.ShowImage( win, img );
 
-        if( cv.WaitKey( 100 ) >= 0 ):
-            break;
+#        if( cv.WaitKey( 100 ) >= 0 ):
+#            break;
     
 
     cv.Set( img, bkgnd_color );

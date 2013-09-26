@@ -2,7 +2,7 @@ from sys import argv
 from random import randint
 from FundMatrCalc import *
 from numpy import linalg, concatenate
-from Delaunay import *
+from Delaunay import Tesselation
 
 '''
 def WritePointsToFile(P, fileName):
@@ -21,6 +21,8 @@ class SceneRestorator:
         self.t = None
         self.restoredP = None
         self.restoredPR = None
+        if len(self.P) < 8 or len(self.PR) < 8:
+            raise Exception("little points. needed at least 8, but given  ", len(self.P))
 
     def Calculate(self):
         pntNum = GenerateRandomDistinctIntegers(0, len(self.P) - 1, 8)
@@ -33,6 +35,7 @@ class SceneRestorator:
     def RestorePoints(self):
         if self.R is None:
             self.Calculate()
+        Tesselation(self.P)
         self.restoredP = []
         for i in range(len(self.P)):
             p2 = P3DToP2D(self.P[i])
@@ -41,7 +44,6 @@ class SceneRestorator:
             z = CalcZ(p2, pR2, self.R, self.t)
             self.restoredP.append(self.P[i] * z)
     #        print "calculated: ", z
-        Tesselation(self.P)
 
 def GenerateRandomDistinctIntegers(left, right, quantity):
 #    return range(left,left+quantity)

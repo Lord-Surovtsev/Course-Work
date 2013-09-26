@@ -25,14 +25,12 @@ if __name__ == '__main__':
     vis = imgPcr.getMatchedPicture()
     cv2.imshow('SURF', vis)
     p1, p2 = imgPcr.getMatchedPoints()
-
-    scnRtr = SceneRestorator(p1, p2)
-    scnRtr.Calculate()
-    scnRtr.RestorePoints()
-
-    print "restoredPpoints"
-    print scnRtr.restoredP
-
+    try:
+        scnRtr = SceneRestorator(p1, p2)
+        scnRtr.Calculate()
+        scnRtr.RestorePoints()
+    except Exception, e:
+        print e
     cv2.waitKey()
     cv2.destroyAllWindows()
 

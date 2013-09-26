@@ -23,10 +23,11 @@ class MatcherDescribedImages:
         self.bruteForceIndexes = match_bruteforce(self.imgDcr1.desc, self.imgDcr2.desc, r_threshold)
         self.matched_p1 = np.array([self.imgDcr1.kp[i].pt for i, j in self.bruteForceIndexes])
         self.matched_p2 = np.array([self.imgDcr2.kp[j].pt for i, j in self.bruteForceIndexes])
+        print "matchedLen ", len(self.matched_p1)
         if (4 < len(self.matched_p1)) and (4 < len(self.matched_p2)):
             self.H, self.status = cv2.findHomography(self.matched_p1, self.matched_p2, cv2.RANSAC, 5)
 #           print '%d / %d  inliers/matched' % (np.sum(self.status), len(self.status))
-#            print np.sum(self.status), " / ", len(self.status), "  inliers/matched"
+            print np.sum(self.status), " / ", len(self.status), "  inliers/matched"
         else:
             self.H = None
             self.status = None
@@ -36,7 +37,7 @@ class MatcherDescribedImages:
         if self.matched_p1 is None:
             self.mathc()
         if self.status is None:
-            self.matchedIndexes = range(self.matched_p1)
+            self.matchedIndexes = range(len(self.matched_p1))
             return
         self.matchedIndexes = []
         for i in range(len(self.status)):
