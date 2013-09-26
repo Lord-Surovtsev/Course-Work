@@ -1,5 +1,8 @@
 import cv2
-from ImagesProcessor import ImagesProcessor
+import imp
+#ImagesProcessor = imp.load_source("ImagesProcessor", "./Processing/ImagesProcessor.py")
+from Processing.ImagesProcessor import ImagesProcessor
+from  Restoration.SceneRestorator import SceneRestorator
 
 help_message = '''SURF image match 
 
@@ -12,7 +15,7 @@ if __name__ == '__main__':
     except:
         fn1 = "./1.jpg"
         fn2 = "./2.jpg"
-    print help_message
+#    print help_message
     img1 = cv2.imread(fn1, 0)
     img2 = cv2.imread(fn2, 0)
 
@@ -23,3 +26,7 @@ if __name__ == '__main__':
     cv2.imshow('SURF', vis)
     cv2.waitKey()
     cv2.destroyAllWindows()
+
+    p1, p2 = imgPcr.getMatchedPoints()
+    scnRtr = SceneRestorator(p1, p2)
+    scnRtr.Restore()
