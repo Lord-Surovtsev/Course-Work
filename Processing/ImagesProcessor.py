@@ -66,4 +66,4 @@ class ImagesProcessor:
     def getMatchedPoints(self):
         if self.mtcDcrImg.zP1 is None:
             self.mtcDcrImg.collectMatchedZippedPoints()
-        return self.mtcDcrImg.zP1, self.mtcDcrImg.zP2
+        return self.mtcDcrImg.zP1, self.mtcDcrImg.zP2, self.img1.shape[:2], self.img2.shape[:2]

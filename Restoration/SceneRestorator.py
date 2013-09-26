@@ -12,10 +12,11 @@ def WritePointsToFile(P, fileName):
     outputFile.close()
 '''
 class SceneRestorator:
-    def __init__(self, P, PR, accuracy = 1e-12):
+    def __init__(self, P, PR, size, sizeR, accuracy = 1e-12):
         self.P = P
         self.PR = PR
-#        self.left = None
+        self.size = size
+        self.sizeR = sizeR
         self.accuracy = accuracy
         self.R = None
         self.t = None
@@ -35,7 +36,7 @@ class SceneRestorator:
     def RestorePoints(self):
         if self.R is None:
             self.Calculate()
-        Tesselation(self.P)
+        Tesselation(self.P, self.size)
         self.restoredP = []
         for i in range(len(self.P)):
             p2 = P3DToP2D(self.P[i])
