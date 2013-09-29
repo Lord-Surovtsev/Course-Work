@@ -34,7 +34,7 @@ def draw_subdiv( img, subdiv, delaunay_color, voronoi_color ):
         draw_subdiv_edge( img, edge, delaunay_color );
 
 def Tesselation(P, (width, height)):
-    win = "source";
+    win = "Delaunay";
     rect = ( 0, 0, height, width);
 
     active_facet_color = cv.RGB( 255, 0, 0 );

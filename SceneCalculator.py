@@ -25,12 +25,16 @@ if __name__ == '__main__':
     vis = imgPcr.getMatchedPicture()
     cv2.imshow('SURF', vis)
     p1, p2 , size1, size2 = imgPcr.getMatchedPoints()
-    print "size1 ", size1
-    print "size2 ", size2
+#    print "size1 ", size1
+#    print "size2 ", size2
+    print "p1 ", p1
+    print "p2 ", p2
     try:
         scnRtr = SceneRestorator(p1, p2, size1, size2)
         scnRtr.Calculate()
-        scnRtr.RestorePoints()
+#        scnRtr.RestorePoints()
+        print "restoredP"
+        print scnRtr.restoredP
     except Exception, e:
         print e
     cv2.waitKey()

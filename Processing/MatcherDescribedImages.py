@@ -62,9 +62,15 @@ class MatcherDescribedImages:
         if self.matchedIndexes is None:
             self.collectMatchedIndexes()
 
+        dx1 = -1 * self.imgDcr1.img.shape[:2][1] / 2
+        dy1 = -1 * self.imgDcr1.img.shape[:2][0] / 2
+
+        dx2 = -1 * self.imgDcr2.img.shape[:2][1] / 2
+        dy2 = -1 * self.imgDcr2.img.shape[:2][0] / 2
+
         for i in range(len(self.matchedIndexes)):
-            self.zP1.append([self.matched_p1[i][0], self.matched_p1[i][1], 1])
-            self.zP2.append([self.matched_p2[i][0], self.matched_p2[i][1], 1])
+            self.zP1.append([-1*(self.matched_p1[i][0] + dx1) / dx1 / 2, -1*(self.matched_p1[i][1] + dy1)/dy1 / 2, 1])
+            self.zP2.append([-1*(self.matched_p2[i][0] + dx2) / dx2 / 2, -1*(self.matched_p2[i][1] + dy2)/dy2 / 2, 1])
 
     def collectMatchedDescriptors(self):
         self.descriptors_p1 = []
