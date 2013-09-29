@@ -3,6 +3,7 @@ import imp
 #ImagesProcessor = imp.load_source("ImagesProcessor", "./Processing/ImagesProcessor.py")
 from Processing.ImagesProcessor import ImagesProcessor
 from  Restoration.SceneRestorator import SceneRestorator
+from Visualisation.Triangulation import Triangulation
 
 help_message = '''SURF image match 
 
@@ -27,16 +28,19 @@ if __name__ == '__main__':
     p1, p2 , size1, size2 = imgPcr.getMatchedPoints()
 #    print "size1 ", size1
 #    print "size2 ", size2
-    print "p1 ", p1
-    print "p2 ", p2
+#    print "p1 ", p1
+#    print "p2 ", p2
     try:
         scnRtr = SceneRestorator(p1, p2, size1, size2)
         scnRtr.Calculate()
 #        scnRtr.RestorePoints()
-        print "restoredP"
-        print scnRtr.restoredP
+#        print "restoredP"
+#        print scnRtr.restoredP
     except Exception, e:
         print e
+    trtn = Triangulation(scnRtr.restoredP)
+    trtn.CalculateTriangles()
+    trtn.WriteToFile("1.tr")
     cv2.waitKey()
     cv2.destroyAllWindows()
 

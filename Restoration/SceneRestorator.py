@@ -22,15 +22,16 @@ class SceneRestorator:
             raise Exception("little points. needed at least 8, but given  ", len(self.P))
 
     def Calculate(self):
+        a = 0
         while True:
             pntNum = GenerateRandomDistinctIntegers(0, len(self.P) - 1, 8)
 
-            print "pntNum ", pntNum
+#            print "pntNum ", pntNum
             p = GetPointsFromArray(pntNum, self.P)
             pR = GetPointsFromArray(pntNum, self.PR)
 
-            for i in range(len(p)):
-                print p[i][0], " ", p[i][1], " ", pR[i][0], " ", pR[i][1]
+#            for i in range(len(p)):
+#                print p[i][0], " ", p[i][1], " ", pR[i][0], " ", pR[i][1]
 
             self.p = p
             self.pR = pR
@@ -38,8 +39,15 @@ class SceneRestorator:
             self.R, self.t = CalculateRAndT(p, pR, self.accuracy)
 
             self.RestorePoints()
-            if CheckResPoints(self.restoredP):
+            flag = CheckResPoints(self.restoredP)
+            if flag == 1:
                 break
+            if flag == -1:
+                self.RestoredP *= -1
+                break
+            a += 1
+            if a == 10:
+                raise Exception("can not calculate")
 
     def RestorePoints(self):
         if self.R is None:
@@ -51,35 +59,25 @@ class SceneRestorator:
             pR2 = P3DToP2D(self.PR[i])
     #        print P[i], " -> ", PR[i]
             z = CalcZ(p2, pR2, self.R, self.t)
-            print i, " ", z
+#            print i, " ", z
             self.restoredP.append(self.P[i] * z * 100)
     #        print "calculated: ", z
         WritePointsToFile(self.restoredP, "out.txt")
-
-'''
-def CheckTranslationVector(t):
-    i = 1
-    if t[0] < 0:
-        i *= -1
-    if t[1] < 0:
-        i *= -1
-    if t[2] < 0:
-        i *= -1
-    return i > 0
-'''
 
 def CheckResPoints(p):
     g = 0
     l = 0
     for i in range(len(p)):
         if g > 0 and l > 0:
-            return False
+            return 0
         if p[i][2] < 0:
             l += 1
             continue
         if p[i][2] > 0:
             g += 1
-    return True
+    if g > 0:
+        return 1
+    return -1
 
 def GenerateRandomDistinctIntegers(left, right, quantity):
 #    return range(left,left+quantity)
@@ -136,9 +134,9 @@ def CalculateRAndT(P, PR, accuracy):
     print R
     print "TX"
     print TX
-    '''
-    print "t--"
+    print "t"
     print t
+    '''
 
     return R, t
 
